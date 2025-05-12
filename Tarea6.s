@@ -100,52 +100,83 @@ count_loop:
     ldr r0, =filecontent
     ldrb r0, [r0, r5]   @ Leer un byte del contenido
 
-    @ Verificar si es un espacio o puntuación
+    @ ===== IGNORAR CARACTERES NO VÁLIDOS =====
+    cmp r0, #'a'        @ ¿Es una letra minúscula?
+    bge valid_char      @ Si es mayor o igual a 'a', puede ser válido
+    cmp r0, #'A'        @ ¿Es una letra mayúscula?
+    bge valid_char      @ Si es mayor o igual a 'A', puede ser válido
+    cmp r0, #'0'        @ ¿Es un número?
+    bge valid_char      @ Si es mayor o igual a '0', puede ser válido
+
+    @ Verificar signos de puntuación permitidos
+    cmp r0, #32         @ Espacio (ASCII 32)
+    beq valid_char
+    cmp r0, #46         @ Punto (.)
+    beq valid_char
+    cmp r0, #44         @ Coma (,)
+    beq valid_char
+    cmp r0, #59         @ Punto y coma (;)
+    beq valid_char
+    cmp r0, #58         @ Dos puntos (:)
+    beq valid_char
+    cmp r0, #33         @ Signo de exclamación (!)
+    beq valid_char
+    cmp r0, #63         @ Signo de interrogación (?)
+    beq valid_char
+    cmp r0, #40         @ Paréntesis abierto (()
+    beq valid_char
+    cmp r0, #41         @ Paréntesis cerrado ())
+    beq valid_char
+    cmp r0, #91         @ Corchete abierto ([)
+    beq valid_char
+    cmp r0, #93         @ Corchete cerrado (])
+    beq valid_char
+    cmp r0, #123        @ Llave abierta ({)
+    beq valid_char
+    cmp r0, #125        @ Llave cerrada (})
+    beq valid_char
+    cmp r0, #34         @ Comillas dobles (")
+    beq valid_char
+    cmp r0, #39         @ Comillas simples (')
+    beq valid_char
+    cmp r0, #45         @ Guion (-)
+    beq valid_char
+
+    @ Si no es válido, saltar al siguiente carácter
+    b next_char
+
+valid_char:
+    @ Verificar si es un delimitador
     cmp r0, #32         @ Espacio (ASCII 32)
     beq is_delimiter
-
     cmp r0, #46         @ Punto (.)
     beq is_delimiter
-
     cmp r0, #44         @ Coma (,)
     beq is_delimiter
-
     cmp r0, #59         @ Punto y coma (;)
     beq is_delimiter
-
     cmp r0, #58         @ Dos puntos (:)
     beq is_delimiter
-
     cmp r0, #33         @ Signo de exclamación (!)
     beq is_delimiter
-
     cmp r0, #63         @ Signo de interrogación (?)
     beq is_delimiter
-
     cmp r0, #40         @ Paréntesis abierto (()
     beq is_delimiter
-
     cmp r0, #41         @ Paréntesis cerrado ())
     beq is_delimiter
-
     cmp r0, #91         @ Corchete abierto ([)
     beq is_delimiter
-
     cmp r0, #93         @ Corchete cerrado (])
     beq is_delimiter
-
     cmp r0, #123        @ Llave abierta ({)
     beq is_delimiter
-
     cmp r0, #125        @ Llave cerrada (})
     beq is_delimiter
-
     cmp r0, #34         @ Comillas dobles (")
     beq is_delimiter
-
     cmp r0, #39         @ Comillas simples (')
     beq is_delimiter
-
     cmp r0, #45         @ Guion (-)
     beq is_delimiter
 
@@ -164,9 +195,10 @@ is_delimiter:
 
 next_char:
     add r5, r5, #1      @ Avanzar al siguiente byte
+    
     b count_loop
-
-print_count:
+    
+    print_count:
     @ ===== IMPRIMIR EL NÚMERO DE PALABRAS =====
     cmp r6, #0          @ ¿El último carácter era parte de una palabra?
     bne skip_last       @ Si no, no ajustar el contador
